@@ -130,6 +130,7 @@ class AddonsConf(AppConf):
         'weblate.addons.generate.GenerateFileAddon',
         'weblate.addons.json.JSONCustomizeAddon',
         'weblate.addons.properties.PropertiesSortAddon',
+        'weblate.addons.uwai.PlatformHookAddon',
     )
 
     class Meta(object):
