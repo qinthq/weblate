@@ -51,7 +51,10 @@ class PlatformHookAddon(BaseAddon):
         if created or unit.state != STATE_APPROVED:
             return
 
+        # Invalidate cached stats before getting.
+        unit.translation.stats.invalidate()
         stats = unit.translation.get_stats()
+
         is_approved = int(unit.translation.stats.approved_percent) == 100
         is_translated = int(stats.get('translated_percent', 0)) == 100
         is_fuzzy = int(stats.get('fuzzy_percent', 0)) == 100
