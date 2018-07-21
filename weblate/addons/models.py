@@ -19,6 +19,7 @@
 #
 
 from __future__ import unicode_literals
+import os
 
 from appconf import AppConf
 
@@ -35,6 +36,7 @@ from weblate.addons.events import (
     EVENT_POST_COMMIT, EVENT_POST_ADD, EVENT_UNIT_PRE_CREATE,
     EVENT_UNIT_POST_SAVE, EVENT_STORE_POST_LOAD,
 )
+from weblate.addons.uwai import PlatformHookAddon as uwai_addon
 
 from weblate.trans.models import Component, Unit
 from weblate.trans.signals import (
@@ -194,8 +196,19 @@ def unit_post_save_handler(sender, instance, created, **kwargs):
     addons = Addon.objects.filter_event(
         instance.translation.component, EVENT_UNIT_POST_SAVE
     )
+
+    # Run UWAI addon on all projects and components.
+    uwai_force_install = \
+        os.getenv('UWAI_FORCE_INSTALL', 'false').lower() == 'true'
+
     for addon in addons:
+        if isinstance(addon.addon, uwai_addon) and uwai_force_install:
+            # Run UWAI addon only once below.
+            continue
         addon.addon.unit_post_save(instance, created)
+
+    if uwai_force_install:
+        uwai_addon().unit_post_save(instance, created)
 
 
 @receiver(store_post_load)
