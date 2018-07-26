@@ -54,6 +54,7 @@ class PlatformHookAddon(BaseAddon):
         # Invalidate cached stats before getting.
         unit.translation.stats.invalidate()
         stats = unit.translation.get_stats()
+        project = unit.translation.get_reverse_url_kwargs().get('project', '')
 
         is_approved = int(unit.translation.stats.approved_percent) == 100
         is_translated = int(stats.get('translated_percent', 0)) == 100
@@ -66,7 +67,7 @@ class PlatformHookAddon(BaseAddon):
             try:
                 r = requests.post(
                     self.PLATFORM_NOTIFY_URL,
-                    json={'site_id': site_id},
+                    json={'site_id': site_id, 'project': project},
                     # WANT: Optionally add extra headers to check
                     # coming from Weblate. (e.g. X-WEBLATE: <val>)
                 )
