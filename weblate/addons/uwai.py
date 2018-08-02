@@ -63,7 +63,7 @@ class PlatformHookAddon(BaseAddon):
 
         if is_approved and is_translated and not is_fuzzy:
             # Push local changes before doing webhook to UWAI Platform.
-            unit.translation.component.do_push(None)
+            unit.translation.do_push()
 
             site_id, _ = os.path.splitext(
                 os.path.split(unit.translation.filename)[-1]
