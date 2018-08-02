@@ -62,6 +62,9 @@ class PlatformHookAddon(BaseAddon):
         is_fuzzy = int(stats.get('fuzzy_percent', 0)) == 100
 
         if is_approved and is_translated and not is_fuzzy:
+            # Push local changes before doing webhook to UWAI Platform.
+            unit.translation.component.do_push(None)
+
             site_id, _ = os.path.splitext(
                 os.path.split(unit.translation.filename)[-1]
             )
