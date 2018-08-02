@@ -29,6 +29,7 @@ from weblate.addons.events import EVENT_UNIT_POST_SAVE
 from weblate.logger import LOGGER as logger
 from weblate.utils.state import STATE_APPROVED
 
+
 class PlatformHookAddon(BaseAddon):
     # List of events addon should receive
     events = (EVENT_UNIT_POST_SAVE,)
@@ -68,6 +69,7 @@ class PlatformHookAddon(BaseAddon):
                 r = requests.post(
                     self.PLATFORM_NOTIFY_URL,
                     json={'site_id': site_id, 'project': project},
+                    timeout=20,
                     # WANT: Optionally add extra headers to check
                     # coming from Weblate. (e.g. X-WEBLATE: <val>)
                 )
