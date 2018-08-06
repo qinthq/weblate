@@ -82,7 +82,11 @@ class PlatformHookAddon(BaseAddon):
             try:
                 r = requests.post(
                     self.PLATFORM_NOTIFY_URL,
-                    json={'site_id': site_id, 'translations': translations},
+                    json={
+                        'site_id': site_id,
+                        'translations': translations,
+                        'project': unit.translation.component.project.name
+                    },
                     timeout=20,
                     # WANT: Optionally add extra headers to check
                     # coming from Weblate. (e.g. X-WEBLATE: <val>)
