@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import os
 
 import requests
+import yaml
 from django.utils.translation import ugettext_lazy as _
 
 from weblate.addons.base import BaseAddon
@@ -55,13 +56,23 @@ class PlatformHookAddon(BaseAddon):
         # Invalidate cached stats before getting.
         unit.translation.stats.invalidate()
         stats = unit.translation.get_stats()
-        project = unit.translation.get_reverse_url_kwargs().get('project', '')
 
         is_approved = int(unit.translation.stats.approved_percent) == 100
         is_translated = int(stats.get('translated_percent', 0)) == 100
         is_fuzzy = int(stats.get('fuzzy_percent', 0)) == 100
 
         if is_approved and is_translated and not is_fuzzy:
+            # Get translation file.
+            trans_filename = unit.translation.get_filename()
+            with open(trans_filename) as handle:
+                try:
+                    translations = yaml.safe_load(handle.read())
+                except yaml.YAMLError:
+                    logger.error(
+                        'Unable to open yaml file: %s', trans_filename
+                    )
+                    raise
+
             # Push local changes before doing webhook to UWAI Platform.
             unit.translation.do_push()
 
@@ -71,7 +82,7 @@ class PlatformHookAddon(BaseAddon):
             try:
                 r = requests.post(
                     self.PLATFORM_NOTIFY_URL,
-                    json={'site_id': site_id, 'project': project},
+                    json={'site_id': site_id, 'translations': translations},
                     timeout=20,
                     # WANT: Optionally add extra headers to check
                     # coming from Weblate. (e.g. X-WEBLATE: <val>)
