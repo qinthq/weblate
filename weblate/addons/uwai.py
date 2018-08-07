@@ -61,9 +61,17 @@ class PlatformHookAddon(BaseAddon):
         is_translated = int(stats.get('translated_percent', 0)) == 100
         is_fuzzy = int(stats.get('fuzzy_percent', 0)) == 100
 
-        if is_approved and is_translated and not is_fuzzy:
+        # do_push() causes another unit.save() signal; disregard the event by
+        # checking if unit is pending.
+        is_pending = unit.pending
+
+        if is_approved and is_translated and not is_fuzzy and is_pending:
             # Push local changes before doing webhook to UWAI Platform.
             unit.translation.do_push()
+
+            # Save changes to translation file; otherwise, result of getting
+            # translations is not updated.
+            unit.translation.store.save()
 
             # Get translation file.
             trans_filename = unit.translation.get_filename()
