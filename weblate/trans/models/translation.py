@@ -390,7 +390,7 @@ class Translation(models.Model, URLMixin, LoggerMixin):
         self.revision = self.get_git_blob_hash()
         self.save(update_fields=['revision'])
         self.log_info(
-            'Storing hash Translation=%s: %s', self, perf_counter()-start_
+            'Storing hash Translation=%s: %s', self, perf_counter()-start
         )
 
     def get_last_author(self, email=False):
@@ -953,7 +953,7 @@ class Translation(models.Model, URLMixin, LoggerMixin):
                 component.invalidate_cache(False)
         self.log_info(
             'Invalidating cache Translation=%s: %s',
-            self, perf_counter()-start_
+            self, perf_counter()-start
         )
 
     def get_kwargs(self):
