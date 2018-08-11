@@ -386,8 +386,12 @@ class Translation(models.Model, URLMixin, LoggerMixin):
 
     def store_hash(self):
         """Store current hash in database."""
+        start = perf_counter()
         self.revision = self.get_git_blob_hash()
         self.save(update_fields=['revision'])
+        self.log_info(
+            'Storing hash Translation=%s: %s', self, perf_counter()-start_
+        )
 
     def get_last_author(self, email=False):
         """Return last autor of change done in Weblate."""
@@ -933,6 +937,7 @@ class Translation(models.Model, URLMixin, LoggerMixin):
 
     def invalidate_cache(self, recurse=True):
         """Invalidate any cached stats."""
+        start = perf_counter()
 
         # Invalidate summary stats
         self.stats.invalidate()
@@ -946,6 +951,10 @@ class Translation(models.Model, URLMixin, LoggerMixin):
             )
             for component in related:
                 component.invalidate_cache(False)
+        self.log_info(
+            'Invalidating cache Translation=%s: %s',
+            self, perf_counter()-start_
+        )
 
     def get_kwargs(self):
         return {
