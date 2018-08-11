@@ -20,6 +20,7 @@
 
 from __future__ import unicode_literals
 
+from time import perf_counter
 import os
 import codecs
 
@@ -227,6 +228,7 @@ class Translation(models.Model, URLMixin, LoggerMixin):
 
     def check_sync(self, force=False, request=None, change=None):
         """Check whether database is in sync with git and possibly updates"""
+        start = perf_counter()
 
         if change is None:
             change = Change.ACTION_UPDATE
@@ -333,6 +335,10 @@ class Translation(models.Model, URLMixin, LoggerMixin):
         if was_new:
             from weblate.accounts.notifications import notify_new_string
             notify_new_string(self)
+
+        self.log_info(
+            'Checking sync Translation=%s: %s', self, perf_counter()-start
+        )
 
     def get_last_remote_commit(self):
         return self.component.get_last_remote_commit()

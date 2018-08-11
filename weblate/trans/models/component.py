@@ -21,6 +21,7 @@
 from __future__ import unicode_literals
 
 from glob import glob
+from time import perf_counter
 import os
 import sys
 import time
@@ -930,6 +931,8 @@ class Component(models.Model, URLMixin, PathMixin):
     def create_translations(self, force=False, langs=None, request=None,
                             changed_template=False):
         """Load translations from VCS."""
+        start = perf_counter()
+
         translations = set()
         languages = set()
         matches = self.get_mask_matches()
@@ -984,6 +987,10 @@ class Component(models.Model, URLMixin, PathMixin):
             component.create_translations(force, langs, request=request)
 
         self.log_info('updating completed')
+        self.log_info(
+            'Creating translations Component=%s: %s',
+            self, perf_counter()-start
+        )
 
     def get_lang_code(self, path):
         """Parse language code from path."""
@@ -1290,6 +1297,7 @@ class Component(models.Model, URLMixin, PathMixin):
 
         It updates backend repository and regenerates translation data.
         """
+        start = perf_counter()
         self.set_default_branch()
 
         # Linked component cache
@@ -1348,6 +1356,10 @@ class Component(models.Model, URLMixin, PathMixin):
         # Copy suggestions to new project
         if changed_project:
             old.project.suggestion_set.copy(self.project)
+
+        self.log_info(
+            'Saving component Component=%s: %s', self, perf_counter()-start
+        )
 
     def repo_needs_commit(self):
         """Check whether there are some not committed changes"""

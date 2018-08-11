@@ -21,6 +21,7 @@
 from __future__ import unicode_literals
 
 from copy import copy
+from time import perf_counter
 import functools
 import traceback
 import multiprocessing
@@ -785,11 +786,19 @@ class Unit(models.Model, LoggerMixin):
 
         # Update checks if content or fuzzy flag has changed
         if not same_content or not same_state:
+            start = perf_counter()
             self.run_checks(same_state, same_content, force_insert)
+            self.log_info(
+                'Running checks Unit=%s: %s', self, perf_counter()-start
+            )
 
         # Update fulltext index if content has changed or this is a new unit
         if force_insert or not same_content:
+            start = perf_counter()
             update_index_unit(self)
+            self.log_info(
+                'Updating index Unit=%s: %s', self, perf_counter()-start
+            )
 
     @cached_property
     def suggestions(self):
