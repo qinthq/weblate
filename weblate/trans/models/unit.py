@@ -453,6 +453,7 @@ class Unit(models.Model, LoggerMixin):
 
     def update_from_unit(self, unit, pos, created):
         """Update Unit from ttkit unit."""
+        start = perf_counter()
         # Get unit attributes
         location = unit.get_locations()
         flags = unit.get_flags()
@@ -462,6 +463,10 @@ class Unit(models.Model, LoggerMixin):
         state = self.get_unit_state(unit, created)
         previous_source = unit.get_previous_source()
         content_hash = unit.get_content_hash()
+        self.log_info(
+            'Getting unit attributes Unit=%s: %s',
+            self, perf_counter()-start
+        )
 
         # Monolingual files handling (without target change)
         if unit.template is not None and target == self.target:
@@ -523,7 +528,12 @@ class Unit(models.Model, LoggerMixin):
             self.target = join_plural(self.get_target_plurals())
 
         if created:
+            start = perf_counter()
             unit_pre_create.send(sender=self.__class__, unit=self)
+            self.log_info(
+                'Sending pre-create signal Unit=%s: %s',
+                self, perf_counter()-start
+            )
 
         # Save into database
         self.save(

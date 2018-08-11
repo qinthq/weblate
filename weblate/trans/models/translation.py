@@ -272,8 +272,13 @@ class Translation(models.Model, URLMixin, LoggerMixin):
             if not unit.is_translatable():
                 continue
 
+            start_ = perf_counter()
             newunit, is_new = Unit.objects.update_from_unit(
                 self, unit, pos
+            )
+            self.log_info(
+                'Updating unit Translation=%s: %s',
+                self, perf_counter()-start_
             )
 
             # Check if unit is worth notification:
@@ -320,8 +325,13 @@ class Translation(models.Model, URLMixin, LoggerMixin):
         ).delete()
 
         # Update revision and stats
+        start_ = perf_counter()
         self.invalidate_cache()
         self.store_hash()
+        self.log_info(
+            'Updating revision and stats Translation=%s: %s',
+            self, perf_counter()-start_
+        )
 
         # Store change entry
         Change.objects.create(
@@ -333,8 +343,13 @@ class Translation(models.Model, URLMixin, LoggerMixin):
 
         # Notify subscribed users
         if was_new:
+            start_ = perf_counter()
             from weblate.accounts.notifications import notify_new_string
             notify_new_string(self)
+            self.log_info(
+                'Notifying new string Translation=%s: %s',
+                self, perf_counter()-start_
+            )
 
         self.log_info(
             'Checking sync Translation=%s: %s', self, perf_counter()-start
