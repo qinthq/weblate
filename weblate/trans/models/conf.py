@@ -161,8 +161,8 @@ class WeblateConf(AppConf):
     DEFAULT_COMMITER_EMAIL = 'noreply@weblate.org'
     DEFAULT_COMMITER_NAME = 'Weblate'
 
-    DEFAULT_TRANSLATION_PROPAGATION = os.getenv(
-        'WEBLATE_TRANSLATION_PROPAGATION', True
+    DEFAULT_TRANSLATION_PROPAGATION = bool(
+        os.getenv('WEBLATE_TRANSLATION_PROPAGATION', True)
     )
 
     DEFAULT_CUSTOM_ACL = False
