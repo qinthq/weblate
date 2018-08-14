@@ -38,7 +38,7 @@ class ComponentDiscovery(object):
     def __init__(self, component, match, name_template,
                  language_regex='^[^.]+$', base_file_template='',
                  new_base_template='',
-                 file_format='auto', path=None):
+                 file_format='auto', path=None, modified_files=[]):
         self.component = component
         if path is None:
             self.path = self.component.full_path
@@ -52,6 +52,7 @@ class ComponentDiscovery(object):
         self.language_match = re.compile(language_regex)
         self.file_format = file_format
         self.logger = LOGGER
+        self.modified_files = modified_files
 
     @cached_property
     def matches(self):
@@ -60,6 +61,13 @@ class ComponentDiscovery(object):
         base = os.path.realpath(self.path)
         for root, dummy, filenames in os.walk(self.path, followlinks=True):
             for filename in filenames:
+                if (
+                    self.modified_files and
+                    filename not in self.modified_files
+                ):
+                    LOGGER.info('Skipping file: %s', filename)
+                    continue
+
                 fullname = os.path.join(root, filename)
 
                 # Skip files outside our root
