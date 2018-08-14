@@ -978,14 +978,6 @@ class Component(models.Model, URLMixin, PathMixin):
                     )
                     todelete.delete()
 
-        # Process linked repos
-        for component in self.get_linked_childs():
-            self.log_info(
-                'updating linked project %s',
-                component
-            )
-            component.create_translations(force, langs, request=request)
-
         self.log_info('updating completed')
         self.log_info(
             'Creating translations Component=%s: %s',
