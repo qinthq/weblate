@@ -65,7 +65,7 @@ class ComponentDiscovery(object):
                     self.modified_files and
                     filename not in self.modified_files
                 ):
-                    LOGGER.info('Skipping file: %s', filename)
+                    self.logger.info('Skipping file: %s', filename)
                     continue
 
                 fullname = os.path.join(root, filename)
@@ -123,6 +123,7 @@ class ComponentDiscovery(object):
             else:
                 result[mask]['files'].add(path)
                 result[mask]['languages'].add(groups['language'])
+        self.logger.info('Matched components: %s', result)
         return result
 
     def create_component(self, main, match, **params):
