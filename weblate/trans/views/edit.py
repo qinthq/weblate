@@ -571,7 +571,7 @@ def translate(request, project, component, lang):
             'object': translation,
             'project': translation.component.project,
             'unit': unit,
-            'others': get_other_units(unit),
+            # 'others': get_other_units(unit),
             'total': translation.unit_set.all().count(),
             'search_url': search_result['url'],
             'search_query': search_result['query'],
