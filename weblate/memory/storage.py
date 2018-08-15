@@ -157,7 +157,7 @@ class TranslationMemory(object):
         self.open_searcher()
         text_query = self.parser.parse(text)
         matches = self.searcher.search(
-            text_query, filter=langfilter, limit=20000
+            text_query, filter=langfilter, limit=10
         )
 
         for match in matches:
