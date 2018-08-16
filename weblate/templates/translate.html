@@ -114,12 +114,12 @@
     {% endif %}
 
     <!-- source change -->
-    {% if unit.previous_source and unit.fuzzy %}
     <div class="form-group">
-    <label>{% trans "Source change" %}</label>
-    {% format_translation unit.source unit.translation.component.project.source_language diff=unit.previous_source num_plurals=unit.translation.plural.number %}
+    	<b>Fuzzy: {{ unit.fuzzy }}<br/></b>
+    	<b>Previous Source: {{ unit.previous_source }}<br/></b>
+    	<label>{% trans "Source change" %}</label>
+    	{% format_translation unit.source unit.translation.component.project.source_language diff=unit.previous_source num_plurals=unit.translation.plural.number %}
     </div>
-    {% endif %}
 
     {% if unit.translation.is_template %}
     <!-- editing template -->
