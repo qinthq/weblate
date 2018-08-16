@@ -19,6 +19,7 @@
 #
 
 from __future__ import unicode_literals
+import os
 
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -26,6 +27,7 @@ from django.utils.translation import ugettext_lazy as _
 from weblate.addons.base import BaseAddon
 from weblate.addons.events import EVENT_POST_UPDATE
 from weblate.addons.forms import DiscoveryForm
+from weblate.logger import LOGGER
 from weblate.trans.discovery import ComponentDiscovery
 
 
@@ -48,6 +50,15 @@ class DiscoveryAddon(BaseAddon):
         return super(DiscoveryAddon, cls).can_install(component, user)
 
     def post_update(self, component, previous_head):
+        # Get modified files; Update only these files; Don't scan everything.
+        last_rev = component.repository.last_remote_revision
+        modified_files = component.repository.execute(
+            ['diff', '--name-only', last_rev, previous_head]
+        )
+        self.instance.configuration['modified_files'] = [
+            os.path.split(f)[-1] for f in modified_files.split('\n') if f
+        ]
+
         self.perform()
 
     def configure(self, settings):
@@ -79,4 +90,7 @@ class DiscoveryAddon(BaseAddon):
             self.instance.configuration['base_file_template'],
             self.instance.configuration['new_base_template'],
             self.instance.configuration['file_format'],
+            modified_files=self.instance.configuration.get(
+                'modified_files', []
+            ),
         )
