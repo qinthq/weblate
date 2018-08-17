@@ -79,7 +79,7 @@
 {% if userlanguages %}
 {% include "list-translations.html" with translations=userlanguages show_language=2 %}
 <p>{% include "legend.html" %}</p>
-{% include "paginator.html" %}
+{% include "paginator.html" with anchor="your-languages" %}
 {% else %}
 <p class="help-block">{% trans "Choose languages you speak in the preferences, to see an overview of all projects that feature those languages here." %}</p>
 {% endif %} {# userlanguages #}
