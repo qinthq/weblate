@@ -485,14 +485,6 @@ def show_translation(request, project, component, lang):
                     to_delete=False
                 ).values('unitid')
             ).exists(),
-            'other_translations': prefetch_stats(
-                Translation.objects.prefetch().filter(
-                    component__project=obj.component.project,
-                    language=obj.language,
-                ).exclude(
-                    pk=obj.pk
-                )
-            ),
         }
     )
 
