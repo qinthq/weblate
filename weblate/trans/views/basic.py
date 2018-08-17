@@ -180,7 +180,13 @@ def home(request):
 
     user = request.user
 
-    user_translations = get_user_translations(request, user)
+    # Paginate translations.
+    page, limit = get_page_limit(request, 50)
+    paginator = Paginator(get_user_translations(request, user), limit)
+    page_obj = paginator.get_page(page)
+    user_translations = Translation.objects.filter(
+        pk__in=[t.id for t in page_obj.object_list]
+    )
 
     suggestions = get_suggestions(request, user, user_translations)
 
@@ -245,6 +251,7 @@ def home(request):
             'componentlists': componentlists,
             'all_componentlists': prefetch_stats(ComponentList.objects.all()),
             'active_tab_slug': active_tab_slug,
+            'page_obj': page_obj,
         }
     )
 
