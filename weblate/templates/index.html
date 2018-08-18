@@ -63,6 +63,7 @@
     {% if usersubscriptions %}
         {% include "list-translations.html" with translations=usersubscriptions show_language=2 hide_completed=user.profile.hide_completed %}
         <p>{% include "legend.html" %}</p>
+        {% include "paginator.html" with anchor="your-subscriptions" %}
     {% else %}
         {% include "list-projects.html" with projects=subscribed_projects %}
     {% endif %}
