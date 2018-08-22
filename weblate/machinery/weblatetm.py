@@ -55,7 +55,7 @@ class WeblateTranslation(MachineTranslation):
         """Download list of possible translations from a service."""
         matching_units = Unit.objects.prefetch().filter(
             translation__component__project__in=user.allowed_projects
-        ).more_like_this(unit, 1000)
+        ).more_like_this(unit)
 
         comparer = Comparer()
 
