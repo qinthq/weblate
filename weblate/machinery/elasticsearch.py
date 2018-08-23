@@ -76,7 +76,7 @@ class ESTranslation(MachineTranslation):
 
         max_score = res_['hits']['max_score']
         for u in res_['hits']['hits']:
-            u['similarity'] = (u['_score']/max_score)*100
+            u['similarity'] = round((u['_score']/max_score)*100, 2)
 
         return [
             self.format_unit_match(
