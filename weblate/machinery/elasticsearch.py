@@ -21,6 +21,7 @@
 from __future__ import unicode_literals
 
 import requests
+from similar_text import similar_text
 
 from django.conf import settings
 
@@ -76,7 +77,8 @@ class ESTranslation(MachineTranslation):
 
         max_score = res_['hits']['max_score']
         for u in res_['hits']['hits']:
-            u['similarity'] = round((u['_score']/max_score)*100, 2)
+            source = u['_source']
+            u['similarity'] = similar_text(source['source'], source['target'])
 
         return [
             self.format_unit_match(
