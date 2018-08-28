@@ -88,7 +88,9 @@ class ESTranslation(MachineTranslation):
 
         start_ = perf_counter()
         # max_similarity = similar_text(max_result['_source']['source'], text)
-        max_similarity = fuzz.ratio(max_result['_source']['source'], text)
+        max_similarity = fuzz.token_set_ratio(
+            max_result['_source']['source'], text
+        )
         LOGGER.info('Getting ES similar_text():%s', perf_counter()-start_)
 
         for u in res_['hits']['hits']:
