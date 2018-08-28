@@ -23,6 +23,7 @@ from time import perf_counter
 
 import requests
 from similar_text import similar_text
+from fuzzywuzzy import fuzz
 
 from django.conf import settings
 
@@ -86,7 +87,8 @@ class ESTranslation(MachineTranslation):
         ][0]
 
         start_ = perf_counter()
-        max_similarity = similar_text(max_result['_source']['source'], text)
+        # max_similarity = similar_text(max_result['_source']['source'], text)
+        max_similarity = fuzz.ratio(max_result['_source']['source'], text)
         LOGGER.info('Getting ES similar_text():%s', perf_counter()-start_)
 
         for u in res_['hits']['hits']:
