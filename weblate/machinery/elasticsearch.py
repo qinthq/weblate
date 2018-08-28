@@ -33,6 +33,23 @@ from weblate.memory.storage import TranslationMemory
 from weblate.machinery.base import MachineTranslation
 
 
+def update_index(unit):
+    try:
+        r = requests.put(
+            '{}/weblate_tm/{}/{}'.format(
+                settings.MT_ES_URL, 'weblate_trans', unit.pk
+            ),
+            json={'source': unit.source, 'target': unit.target},
+            timeout=20,
+        )
+        r.raise_for_status()
+    except Exception:
+        LOGGER.exception(
+            'Ignoring failed index update to ES URL="%s": %s',
+            settings.MT_ES_URL, r.text
+        )
+
+
 class ESTranslation(MachineTranslation):
     """Translation service using strings already translated in Weblate."""
     name = 'Elasticsearch Translation Memory'
