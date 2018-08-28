@@ -19,6 +19,7 @@
 #
 
 from __future__ import unicode_literals
+from time import perf_counter
 
 import requests
 from similar_text import similar_text
@@ -58,6 +59,8 @@ class ESTranslation(MachineTranslation):
 
     def download_translations(self, source, language, text, unit, user):
         """Download list of possible translations from a service."""
+        start = perf_counter()
+
         es_search_url = '{}/{}/_search'.format(
             settings.MT_ES_URL, 'weblate_tm'
         )
@@ -74,20 +77,25 @@ class ESTranslation(MachineTranslation):
                 'Querying Elasticsearch: "%s" failed.', es_search_url
             )
             raise
+        LOGGER.info('Querying ES server:%s', perf_counter()-start)
 
         max_score = res_['hits']['max_score']
         max_result = [
             u for u in res_['hits']['hits']
             if u['_score'] == max_score
         ][0]
+
+        start_ = perf_counter()
         max_similarity = similar_text(max_result['_source']['source'], text)
+        LOGGER.info('Getting ES similar_text():%s', perf_counter()-start_)
+
         for u in res_['hits']['hits']:
             source = u['_source']
             u['similarity'] = round(
                 (max_similarity*u['_score'])/max_score, 2
             )
 
-        return [
+        results = [
             self.format_unit_match(
                 u['_source']['source'],
                 u['_source']['target'],
@@ -95,3 +103,5 @@ class ESTranslation(MachineTranslation):
                 u['_type'],
             ) for u in res_['hits']['hits']
         ]
+        LOGGER.info('Getting ES results:%s', perf_counter()-start)
+        return results
