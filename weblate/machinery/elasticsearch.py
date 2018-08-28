@@ -76,9 +76,16 @@ class ESTranslation(MachineTranslation):
             raise
 
         max_score = res_['hits']['max_score']
+        max_result = [
+            u for u in res_['hits']['hits']
+            if u['_score'] == max_score
+        ][0]
+        max_similarity = similar_text(max_result['_source']['source'], text)
         for u in res_['hits']['hits']:
             source = u['_source']
-            u['similarity'] = similar_text(source['source'], text)
+            u['similarity'] = round(
+                (max_similarity*u['_score'])/max_score, 2
+            )
 
         return [
             self.format_unit_match(
