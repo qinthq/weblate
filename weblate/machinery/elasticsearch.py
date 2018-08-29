@@ -36,12 +36,19 @@ from weblate.memory.storage import TranslationMemory, get_node_data
 
 
 def update_source_unit_index(unit):
+    source_language = unit.translation.component.project.source_language.code
+    target_language = unit.translation.language.code
+    origin = 'translations'
     try:
         r = requests.put(
-            '{}/weblate/{}/{}'.format(
-                settings.MT_ES_URL, 'translations', unit.pk
-            ),
-            json={'source': unit.source, 'target': unit.target},
+            '{}/weblate/{}/{}'.format(settings.MT_ES_URL, origin, unit.pk),
+            json={
+                'source_language': source_language,
+                'target_language': target_language,
+                'source': unit.source,
+                'target': unit.target,
+                'origin': origin,
+            },
             timeout=20,
         )
         r.raise_for_status()
@@ -156,7 +163,13 @@ class ESTranslationMemory(TranslationMemory):
                 trans_data.append(
                     '{}\n{}\n'.format(
                         json.dumps({'index': {}}),
-                        json.dumps({'source': source, 'target': text}),
+                        json.dumps({
+                            'source_language': source_language,
+                            'target_language': languages[lang],
+                            'source': source,
+                            'target': text,
+                            'origin': origin,
+                        }),
                     )
                 )
 
