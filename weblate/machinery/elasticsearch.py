@@ -123,7 +123,7 @@ class ESTranslation(MachineTranslation):
                 raise ValueError('Invalid Elasticsearch Schema.')
             translations.append((
                 target,
-                '{0:.2f}'.format(t['_score']*ratio),
+                round(t['_score']*ratio, 2),
                 '{0} ({1})'.format(self.name, t['_type']),
                 source,
             ))
