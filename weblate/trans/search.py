@@ -37,7 +37,9 @@ from django.utils.encoding import force_text
 from django.db import transaction
 
 from weblate.lang.models import Language
-from weblate.machinery.elasticsearch import update_index as es_update_index
+from weblate.machinery.elasticsearch import (
+    update_source_unit_index as es_update_index
+)
 from weblate.trans.data import data_dir
 
 STORAGE = FileStorage(data_dir('whoosh'))
