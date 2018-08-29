@@ -23,8 +23,10 @@ from __future__ import unicode_literals
 import argparse
 import json
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from weblate.machinery.elasticsearch import ESTranslationMemory
 from weblate.memory.storage import TranslationMemory
 
 
@@ -58,6 +60,10 @@ class Command(BaseCommand):
 
         memory = TranslationMemory()
         if options['file'].name.lower().endswith('.tmx'):
+            es_service = 'weblate.machinery.elasticsearch.ESTranslation'
+            if es_service in settings.MT_SERVICES:
+                # Don't use WeblateMemory if Elasticsearch is enabled.
+                memory = ESTranslationMemory()
             memory.import_tmx(options['file'], langmap)
         elif options['file'].name.lower().endswith('.json'):
             try:

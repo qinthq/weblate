@@ -19,14 +19,20 @@
 #
 
 from __future__ import unicode_literals
+import json
+import os
+from itertools import zip_longest
 
 import requests
 from fuzzywuzzy import fuzz
+from translate.storage.tmx import tmxfile
 
 from django.conf import settings
+from django.utils.encoding import force_text
 
 from weblate.logger import LOGGER
 from weblate.machinery.base import MachineTranslation
+from weblate.memory.storage import TranslationMemory, get_node_data
 
 
 def update_source_unit_index(unit):
@@ -114,3 +120,58 @@ class ESTranslation(MachineTranslation):
                 source,
             ))
         return translations
+
+
+class ESTranslationMemory(TranslationMemory):
+    def import_tmx(self, fileobj, langmap=None):
+        origin = force_text(os.path.basename(fileobj.name))
+        storage = tmxfile.parsefile(fileobj)
+        header = next(
+            storage.document.getroot().iterchildren(
+                storage.namespaced("header")
+            )
+        )
+        source_language_code = header.get('srclang')
+        source_language = self.get_language_code(source_language_code, langmap)
+
+        trans_data = []
+        languages = {}
+        for unit in storage.units:
+            # Parse translations (translate-toolkit does not care about
+            # languages here, it just picks first and second XML elements)
+            translations = {}
+            for node in unit.getlanguageNodes():
+                lang, text = get_node_data(unit, node)
+                translations[lang] = text
+                if lang not in languages:
+                    languages[lang] = self.get_language_code(lang, langmap)
+
+            try:
+                source = translations.pop(source_language_code)
+            except KeyError:
+                # Skip if source language is not present
+                continue
+
+            for lang, text in translations.items():
+                trans_data.append(
+                    '{}\n{}\n'.format(
+                        json.dumps({'index': {}}),
+                        json.dumps({'source': source, 'target': text}),
+                    )
+                )
+
+        for trans in zip_longest(*[iter(trans_data)]*1000, fillvalue=''):
+            try:
+                r = requests.post(
+                    '{}/weblate/{}/_bulk'.format(settings.MT_ES_URL, origin),
+                    data=''.join(trans),
+                    headers={'Content-Type': 'application/x-ndjson'},
+                    timeout=20,
+                )
+                r.raise_for_status()
+            except requests.exceptions.HTTPError:
+                LOGGER.error(
+                    'Failed importing tmx="%s" to Elasticsearch: %s',
+                    origin, r.text
+                )
+                raise
