@@ -51,6 +51,7 @@ def update_source_unit_index(unit):
             },
             timeout=20,
         )
+        LOGGER.info('Updating Elasticsearch index: %s', r.text)
         r.raise_for_status()
     except Exception:
         LOGGER.exception(
