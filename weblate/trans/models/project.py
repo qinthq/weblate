@@ -31,14 +31,14 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 
 from weblate.lang.models import Language, get_english_lang
-from weblate.trans.mixins import URLMixin, PathMixin
+from weblate.trans.mixins import URLMixin, PathMixin, VCSMixin
 from weblate.utils.stats import ProjectStats
 from weblate.utils.site import get_site_url
 from weblate.trans.data import data_dir
 
 
 @python_2_unicode_compatible
-class Project(models.Model, URLMixin, PathMixin):
+class Project(models.Model, URLMixin, PathMixin, VCSMixin):
     ACCESS_PUBLIC = 0
     ACCESS_PROTECTED = 1
     ACCESS_PRIVATE = 100
@@ -213,7 +213,7 @@ class Project(models.Model, URLMixin, PathMixin):
                         repo=new_component.get_repo_link_url()
                     )
 
-        self.create_path()
+        self.create_repository()
 
         super(Project, self).save(*args, **kwargs)
 

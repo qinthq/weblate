@@ -21,12 +21,16 @@
 from __future__ import unicode_literals
 
 import os
+import tempfile
 
+from django.conf import settings
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.functional import cached_property
 
-from weblate.logger import LOGGER
 from weblate.accounts.avatar import get_user_display
+from weblate.logger import LOGGER
+from weblate.vcs.models import VCS_REGISTRY
 
 
 class URLMixin(object):
@@ -146,3 +150,33 @@ class PathMixin(LoggerMixin):
 class UserDisplayMixin(object):
     def get_user_display(self, icon=True):
         return get_user_display(self.user, icon, link=True)
+
+
+class VCSMixin(object):
+    def create_repository(self):
+        if os.path.exists(self.full_path):
+            return
+
+        path = self.full_path
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        workdir = tempfile.mkdtemp(dir=self.full_path)
+        os.chmod(workdir, 0o755)
+
+        component = self.component_set\
+            .filter(~Q(repo__startswith='weblate://'))\
+            .get()
+        gitrepo = VCS_REGISTRY[settings.DEFAULT_VCS].clone(
+            component.repo, workdir
+        )
+        with gitrepo.lock:
+            gitrepo.configure_remote(
+                component.repo, component.push, component.branch
+            )
+            gitrepo.set_committer(
+                component.committer_name, component.committer_email
+            )
+            gitrepo.configure_branch(component.branch)
+
+        os.rename(workdir, os.path.join(self.full_path, component.slug))
