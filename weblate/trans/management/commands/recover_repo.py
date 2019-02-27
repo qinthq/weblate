@@ -27,7 +27,7 @@ class Command(BaseCommand):
         self.vcs = None
         self.logger = LOGGER
 
-    def checkout_tmp(self, project, repo, branch):
+    def checkout_tmp(self, project, component):
         """Checkout project to temporary location."""
         os.mkdir(project.full_path)
 
@@ -38,10 +38,13 @@ class Command(BaseCommand):
 
         # Initialize git repository
         self.logger.info('Cloning git repository...')
-        gitrepo = VCS_REGISTRY[self.vcs].clone(repo, workdir)
+        gitrepo = VCS_REGISTRY[self.vcs].clone(component.repo, workdir)
         self.logger.info('Updating working copy in git repository...')
         with gitrepo.lock:
-            gitrepo.configure_branch(branch)
+            gitrepo.configure_branch(component.branch)
+            gitrepo.set_committer(
+                component.committer_name, component.committer_email
+            )
 
         return workdir
 
@@ -58,7 +61,7 @@ class Command(BaseCommand):
     def clone_repo(self, project, component):
         """Import the first repository of a project"""
         # Checkout git to temporary dir
-        workdir = self.checkout_tmp(project, component.repo, component.branch)
+        workdir = self.checkout_tmp(project, component)
 
         # Rename gitrepository to new name
         os.rename(workdir, os.path.join(project.full_path, component.slug))
