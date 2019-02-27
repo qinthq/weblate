@@ -152,7 +152,7 @@ class UserDisplayMixin(object):
         return get_user_display(self.user, icon, link=True)
 
 
-class VCSMixin(object):
+class VCSMixin(LoggerMixin):
     def create_repository(self):
         if os.path.exists(self.full_path):
             return
@@ -167,6 +167,7 @@ class VCSMixin(object):
         component = self.component_set\
             .filter(~Q(repo__startswith='weblate://'))\
             .get()
+        self.log_info('Cloning git repository...')
         gitrepo = VCS_REGISTRY[settings.DEFAULT_VCS].clone(
             component.repo, workdir
         )
@@ -179,4 +180,5 @@ class VCSMixin(object):
             )
             gitrepo.configure_branch(component.branch)
 
+        self.log_info('Renaming temporary working directory...')
         os.rename(workdir, os.path.join(self.full_path, component.slug))

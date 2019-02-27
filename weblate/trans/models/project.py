@@ -266,6 +266,7 @@ class Project(models.Model, URLMixin, PathMixin, VCSMixin):
 
     def do_update(self, request=None, method=None):
         """Update all Git repos."""
+        self.create_repository()
         ret = True
         for component in self.all_repo_components():
             ret &= component.do_update(request, method=method)
