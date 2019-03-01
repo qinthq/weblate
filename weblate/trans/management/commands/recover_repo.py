@@ -41,10 +41,13 @@ class Command(BaseCommand):
         gitrepo = VCS_REGISTRY[self.vcs].clone(component.repo, workdir)
         self.logger.info('Updating working copy in git repository...')
         with gitrepo.lock:
-            gitrepo.configure_branch(component.branch)
+            gitrepo.configure_remote(
+                component.repo, component.push, component.branch
+            )
             gitrepo.set_committer(
                 component.committer_name, component.committer_email
             )
+            gitrepo.configure_branch(component.branch)
 
         return workdir
 
