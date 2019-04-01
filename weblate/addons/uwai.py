@@ -20,6 +20,7 @@
 
 from __future__ import unicode_literals
 import os
+from time import perf_counter
 
 import requests
 import yaml
@@ -50,12 +51,14 @@ class PlatformHookAddon(BaseAddon):
 
     # Callback to implement custom behavior
     def unit_post_save(self, unit, created):
+        start = perf_counter()
         if created or unit.state != STATE_APPROVED:
             return
 
         # Invalidate cached stats before getting.
         unit.translation.stats.invalidate()
         stats = unit.translation.get_stats()
+        logger.info('Invalidating cache: %s', perf_counter()-start)
 
         is_approved = int(unit.translation.stats.approved_percent) == 100
         is_translated = int(stats.get('translated_percent', 0)) == 100
@@ -67,13 +70,18 @@ class PlatformHookAddon(BaseAddon):
 
         if is_approved and is_translated and not is_fuzzy and is_pending:
             # Push local changes before doing webhook to UWAI Platform.
+            start_ = perf_counter()
             unit.translation.do_push()
+            logger.info('Pushing local changes: %s', perf_counter()-start_)
 
             # Save changes to translation file; otherwise, result of getting
             # translations is not updated.
+            start_ = perf_counter()
             unit.translation.store.save()
+            logger.info('Saving changes to file: %s', perf_counter()-start_)
 
             # Get translation file.
+            start_ = perf_counter()
             trans_filename = unit.translation.get_filename()
             with open(trans_filename) as handle:
                 try:
@@ -83,7 +91,9 @@ class PlatformHookAddon(BaseAddon):
                         'Unable to open yaml file: %s', trans_filename
                     )
                     raise
+            logger.info('Loading yaml file: %s', perf_counter()-start_)
 
+            start_ = perf_counter()
             site_id, _ = os.path.splitext(
                 os.path.split(unit.translation.filename)[-1]
             )
@@ -104,4 +114,7 @@ class PlatformHookAddon(BaseAddon):
                 logger.exception(
                     'Call to UWAI Platform failed: %s', r.text
                 )
+            logger.info(
+                'Sending webhook to Platform: %s', perf_counter()-start_
+            )
         return
