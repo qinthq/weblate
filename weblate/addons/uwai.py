@@ -90,7 +90,7 @@ class PlatformHookAddon(BaseAddon):
 
             # Push local changes before doing webhook to UWAI Platform.
             start_ = perf_counter()
-            unit.translation.do_push(force_commit=False)
+            unit.translation.component.do_push(force_commit=False)
             logger.info('Pushing local changes: %s', perf_counter()-start_)
 
             # Save changes to translation file; otherwise, result of getting
