@@ -72,7 +72,7 @@ class PlatformHookAddon(BaseAddon):
             # Need to commit pending before reading translation file.
             # Read translation file before pushing to ignore repo.lock.
             unit.translation.component.commit_pending(
-                request=None, skip_push=True
+                request=None, from_link=True, skip_push=True
             )
 
             # Get translation file.
@@ -90,7 +90,7 @@ class PlatformHookAddon(BaseAddon):
 
             # Push local changes before doing webhook to UWAI Platform.
             start_ = perf_counter()
-            unit.translation.do_push()
+            unit.translation.do_push(force_commit=False)
             logger.info('Pushing local changes: %s', perf_counter()-start_)
 
             # Save changes to translation file; otherwise, result of getting
