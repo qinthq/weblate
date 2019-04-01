@@ -69,16 +69,11 @@ class PlatformHookAddon(BaseAddon):
         is_pending = unit.pending
 
         if is_approved and is_translated and not is_fuzzy and is_pending:
-            # Push local changes before doing webhook to UWAI Platform.
-            start_ = perf_counter()
-            unit.translation.do_push()
-            logger.info('Pushing local changes: %s', perf_counter()-start_)
-
-            # Save changes to translation file; otherwise, result of getting
-            # translations is not updated.
-            start_ = perf_counter()
-            unit.translation.store.save()
-            logger.info('Saving changes to file: %s', perf_counter()-start_)
+            # Need to commit pending before reading translation file.
+            # Read translation file before pushing to ignore repo.lock.
+            unit.translation.component.commit_pending(
+                request=None, skip_push=True
+            )
 
             # Get translation file.
             start_ = perf_counter()
@@ -92,6 +87,17 @@ class PlatformHookAddon(BaseAddon):
                     )
                     raise
             logger.info('Loading yaml file: %s', perf_counter()-start_)
+
+            # Push local changes before doing webhook to UWAI Platform.
+            start_ = perf_counter()
+            unit.translation.do_push()
+            logger.info('Pushing local changes: %s', perf_counter()-start_)
+
+            # Save changes to translation file; otherwise, result of getting
+            # translations is not updated.
+            start_ = perf_counter()
+            unit.translation.store.save()
+            logger.info('Saving changes to file: %s', perf_counter()-start_)
 
             start_ = perf_counter()
             site_id, _ = os.path.splitext(
