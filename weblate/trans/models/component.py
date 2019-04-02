@@ -675,7 +675,9 @@ class Component(models.Model, URLMixin, PathMixin):
         )
 
     @perform_on_link
-    def do_push(self, request, force_commit=True, do_update=True):
+    def do_push(
+        self, request, force_commit=True, do_update=True, from_link=False
+    ):
         """Wrapper for pushing changes to remote repo."""
         # Do we have push configured
         if not self.can_push():
@@ -713,10 +715,11 @@ class Component(models.Model, URLMixin, PathMixin):
             )
 
             vcs_post_push.send(sender=self.__class__, component=self)
-            for component in self.get_linked_childs():
-                vcs_post_push.send(
-                    sender=component.__class__, component=component
-                )
+            if not from_link:
+                for component in self.get_linked_childs():
+                    vcs_post_push.send(
+                        sender=component.__class__, component=component
+                    )
 
             return True
         except RepositoryException as error:
